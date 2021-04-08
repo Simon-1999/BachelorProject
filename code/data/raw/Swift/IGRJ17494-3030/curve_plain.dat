@@ -1,0 +1,18 @@
+ ! Swift/XRT lightcurve of trigger: 32318, name: IGR J17494-3030
+ ! T0 for this burst is Swift MET=353948642.0 s, = 2012 Mar 20 at 15:03:53.987 UT
+ ! Data covers 0.3-10 keV
+ ! The data are in 5 columns:  ! time, time error (+ve), time error (-ve), source count-rate, source error
+ ! For a detailed description of light curve production, see Evans et al. 2007 (A&A, 469, 379 )
+ ! For a detailed description of the file, see
+ ! http://www.swift.ac.uk/xrt_curves/docs.php
+ ! This lightcurve was obtained from http://www.swift.ac.uk/xrt_curves/00032318
+ ! BINMODE: 
+
+! WT data
+!MJD    	T_+ve   	T_-ve   	Rate    	Ratepos 	Rateneg
+56009.9174263442	0.00579199074074074	-0.00579199074074074	1.913456e+00	4.665441e-02	-4.703895e-02	::ObsID=00032318002
+! PC data
+!MJD    	T_+ve   	T_-ve   	Rate    	Ratepos 	Rateneg
+56006.6363270039	0.00576040509259259	-0.00576040509259259	1.308581e+00	6.605136e-02	-6.605136e-02	::ObsID=00032318001
+56012.1317378373	0.00339530092592593	-0.00339530092592593	1.083126e+00	5.980497e-02	-5.980497e-02	::ObsID=00032318003
+56016.5686770618	0.0386254166666667	-0.0386254166666667	4.140475e-01	2.388149e-02	-2.388149e-02	::ObsID=00032318004

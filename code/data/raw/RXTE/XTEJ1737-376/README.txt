@@ -1,0 +1,1 @@
+= IGR J17379-3747 (discovered as AMXP in 2019)
