@@ -1,4 +1,4 @@
- % SOURCE : xtej1118+480
+% SOURCE : xtej1118+480
 % TSTART : 50083.
 % TSTOP : 60000.
 % DATYPE : One-Day Average

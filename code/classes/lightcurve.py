@@ -12,20 +12,38 @@ from astropy.timeseries import aggregate_downsample
 from astropy.modeling import models, fitting
 from astropy import units as u
 import copy
+import json
 
 class Lightcurve():
 
-    def __init__(self, name, telescope, file):
+    def __init__(self, name, telescope):
  
         self.name = name
         self.telescope = telescope
+        self.ts = self.load_ts()
 
-        if telescope == 'RXTE':
-            self.ts = self.load_rxte_ts(file)
-        elif telescope == 'Swift':
-            self.ts = self.load_swift_ts(file)
-        elif telescope == 'Swift GC':
-            self.ts = self.load_swiftgc_ts(file)
+
+    def load_ts(self):
+
+        # Search for filepath
+        with open(f'{self.telescope}_paths.json') as json_file:
+            paths = json.load(json_file)
+        file = paths[self.name]['path']
+        read_type = paths[self.name]['read_type']
+
+        # Select reading method
+        if read_type == 'RXTE':
+            return self.load_rxte_ts(file)
+        
+        elif read_type == "Swift":
+            return self.load_swift_ts(file)
+
+        elif read_type == "Swiftsec":
+            return self.load_swiftsec_ts(file)
+
+        elif read_type == 'SwiftGC':
+            return self.load_swiftgc_ts(file)
+
         else:
             print('[Error] Telescope name unkown, could not load...')
 
@@ -54,7 +72,7 @@ class Lightcurve():
             l_strip = l.strip()
         
             # Process data
-            if l_strip[0] != ";":
+            if l_strip[0] != ";" and l_strip[0] != "%":
 
                 # Make list of columns
                 l_split = l_strip.split()
@@ -64,8 +82,8 @@ class Lightcurve():
                 data['time_err_pos'].append(0)
                 data['time_err_neg'].append(0)
                 data['rate'].append(float(l_split[1]))
-                data['rate_err_pos'].append(0)
-                data['rate_err_neg'].append(0)
+                data['rate_err_pos'].append(abs(float(l_split[2])))
+                data['rate_err_neg'].append(abs(float(l_split[2])))
                 data['mode'].append('std')    
 
         # Close file
@@ -121,6 +139,73 @@ class Lightcurve():
                 data['rate'].append(float(l_split[3]))
                 data['rate_err_pos'].append(float(l_split[4]))
                 data['rate_err_neg'].append(abs(float(l_split[5])))
+                data['mode'].append(mode_type)  
+
+            # Mode type
+            if l_strip.startswith('! WT data'):
+                read = True   
+                mode_type = 'WT'
+
+            if l_strip.startswith('! PC data'):
+                read = True
+                mode_type = 'PC'
+
+            if l_strip.startswith('! PC Upper limit'):
+                read = False
+
+        read_file.close()
+
+        # Make timeseries object
+        ts = TimeSeries(time=Time(times, format='mjd'),
+                        data=data)
+        return ts
+
+
+    def load_swiftsec_ts(self, file):
+        print(f'Loading file {file} ...')
+
+        # Initialize temporary storage frame
+        times = []
+        data = {        
+            'time_err_pos': [],
+            'time_err_neg': [],
+            'rate': [],
+            'rate_err_pos': [],
+            'rate_err_neg': [],
+            'mode': [],
+        }
+
+        # Loop variables
+        read = False
+        mode_type = 'Unkown'
+
+        # Open read and write file
+        read_file= open(file,'r')    
+
+        for l in read_file:
+            l_strip = l.strip()
+        
+            # Process data
+            if read and not l_strip.startswith('!'):
+
+                l_split = l_strip.split()
+
+                # Query data
+                
+                time = l_split[0]
+                time_error_up = l_split[1]
+                time_error_down = l_split[2]
+                rate = l_split[3]
+                rate_error_up = l_split[4]
+                rate_error_down = l_split[5]
+
+                # Temporary save
+                times.append(str(54368.68333046 + float(l_split[0])/60/60/24))
+                data['time_err_pos'].append(float(l_split[1])/60/60/24)
+                data['time_err_neg'].append(abs(float(l_split[2])/60/60/24))
+                data['rate'].append(float(l_split[3])*40)
+                data['rate_err_pos'].append(float(l_split[4])*40)
+                data['rate_err_neg'].append(abs(float(l_split[5])*40))
                 data['mode'].append(mode_type)  
 
             # Mode type
@@ -226,7 +311,7 @@ class Lightcurve():
             # Query errors
             xerr = self.ts['time_err_pos'], self.ts['time_err_pos']
             yerr = self.ts['rate_err_neg'], self.ts['rate_err_neg']
-            plt.errorbar(self.ts.time.mjd, self.ts['rate'], xerr=xerr, yerr=yerr, fmt='s', ms=3, label=self.name)  
+            plt.errorbar(self.ts.time.mjd, self.ts['rate'], xerr=xerr, yerr=yerr, fmt='s', ms=3, elinewidth=.5 ,label=self.name)  
 
 
     def binning(self, bin_days=10):
@@ -246,7 +331,7 @@ class Lightcurve():
         return lc
 
 
-    def fraction(self, start_time, end_time):
+    def get_fraction(self, start_time, end_time):
 
         lc = copy.deepcopy(self)
 
@@ -259,7 +344,7 @@ class Lightcurve():
         return lc
 
 
-    def gaussian_fit(self, amplitude, mean):
+    def fit_gaussian(self, amplitude, mean):
         print(f'gaussian_fit: fitting {self.name}...')
 
         # Query x and y
@@ -269,7 +354,7 @@ class Lightcurve():
         # Fit gaussian
         g_init = models.Gaussian1D(amplitude=amplitude, mean=mean, stddev=1.)
         fit = fitting.LevMarLSQFitter()
-        g = fit(g_init, x, y)
+        g = fit(g_init, x, y, weights=self.ts['rate_err_pos'])
 
         # Print parameters
         print("--- Fit parameters ---")
@@ -280,6 +365,7 @@ class Lightcurve():
 
         # Plot the data with the best-fit model
         print('gaussian_fit: plotting...')
+        self.plot_lc_clean()
         plt.plot(x, y, 'ks')
         plt.plot(x, g(x), label='Gaussian')
         plt.title(f'{self.name} - {self.telescope}')
@@ -289,4 +375,4 @@ class Lightcurve():
         plt.show()
 
         return 
-                
+

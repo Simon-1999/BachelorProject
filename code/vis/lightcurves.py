@@ -40,21 +40,21 @@ def multiple_lcs(lcs, show=True, save=False, styling=False):
         default_style()
 
     # Title
-    plt.title(f'Lightcurves')
+    plt.title(r'Lightcurves')
 
     # Axis
-    plt.xlabel('$Time$ $(MJD)$')
-    plt.ylabel('$Rate$')
+    plt.xlabel(r'Time (MJD)')
+    plt.ylabel(r'Rate ($s^{-1}$)')
 
     # Light curves
     for lc in lcs:
         lc.plot_lc_clean()
 
     # Legend
-    plt.legend()
+    plt.legend(shadow=False, edgecolor='k')
 
     if save:
-        plt.savefig(f'output/lightcurves/multiple_lcs.png', dpi=200)
+        plt.savefig(f'output/analysis/{lc.name}_{lc.telescope}.png', dpi=200)
 
     if show:
         plt.show()
@@ -83,3 +83,5 @@ def science_style():
     plt.rcParams['ytick.minor.size'] = 3.0
     plt.rcParams['xtick.direction'] = 'in'
     plt.rcParams['ytick.direction'] = 'in'
+    plt.minorticks_on()
+    
