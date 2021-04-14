@@ -4,15 +4,16 @@
 #
 # This file contains the lightcurve class
 
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 from astropy.time import Time
 from astropy.timeseries import TimeSeries
 from astropy.timeseries import aggregate_downsample
 from astropy.modeling import models, fitting
 from astropy import units as u
+import matplotlib.pyplot as plt
+import matplotlib as mpl
 import copy
 import json
+import numpy as np
 
 class Lightcurve():
 
@@ -21,7 +22,7 @@ class Lightcurve():
         self.name = name
         self.telescope = telescope
         self.ts = self.load_ts()
-
+        self.ts.sort('time')
 
     def load_ts(self):
 
@@ -84,7 +85,7 @@ class Lightcurve():
                 data['rate'].append(float(l_split[1]))
                 data['rate_err_pos'].append(abs(float(l_split[2])))
                 data['rate_err_neg'].append(abs(float(l_split[2])))
-                data['mode'].append('std')    
+                data['mode'].append('RXTE')    
 
         # Close file
         read_file.close()
@@ -203,9 +204,9 @@ class Lightcurve():
                 times.append(str(54368.68333046 + float(l_split[0])/60/60/24))
                 data['time_err_pos'].append(float(l_split[1])/60/60/24)
                 data['time_err_neg'].append(abs(float(l_split[2])/60/60/24))
-                data['rate'].append(float(l_split[3])*40)
-                data['rate_err_pos'].append(float(l_split[4])*40)
-                data['rate_err_neg'].append(abs(float(l_split[5])*40))
+                data['rate'].append(float(l_split[3]))
+                data['rate_err_pos'].append(float(l_split[4]))
+                data['rate_err_neg'].append(abs(float(l_split[5])))
                 data['mode'].append(mode_type)  
 
             # Mode type
@@ -264,7 +265,7 @@ class Lightcurve():
                 data['rate'].append(float(l_split[13]))
                 data['rate_err_pos'].append(abs(float(l_split[14])))
                 data['rate_err_neg'].append(abs(float(l_split[14])))
-                data['mode'].append('std')    
+                data['mode'].append('SwiftGC')    
 
         # Close file
         read_file.close()
@@ -275,43 +276,26 @@ class Lightcurve():
         return ts
 
 
-    def plot_lc(self):
+    def get_rate_lower(self):
 
-        CM = {
-            'PC': 'r',
-            'WT': 'b',
-            'std': 'k',
-        }
+        rate_lower = []
 
-        # Plot time vs rate
-        for row in self.ts:  
-            plt.plot(row['time'].mjd, row['rate'], 's', markersize=3, color=CM[row['mode']])
+        for i in range(len(self.ts)):
 
-        # Add labels
-        patches = []
-        for mode in CM.keys():
-            if mode in self.ts['mode']:
-                patches.append(mpatches.Patch(color=CM[mode], label=f'{mode} mode'))
-        plt.legend(handles=patches)
+            rate_lower.append(self.ts['rate'][i] - self.ts['rate_err_neg'][i])
 
-        # Query errors
-        xerr = self.ts['time_err_pos'], self.ts['time_err_pos']
-        yerr = self.ts['rate_err_neg'], self.ts['rate_err_neg']
-
-        # Plot errorbars
-        plt.errorbar(self.ts.time.mjd, self.ts['rate'], xerr=xerr, yerr=yerr, color='k', fmt=' ')   
+        return rate_lower
 
 
-    def plot_lc_clean(self):
+    def get_rate_upper(self):
 
-        if self.ts.__class__.__name__ == 'BinnedTimeSeries':
-            plt.plot(self.ts['time_bin_start'].mjd, self.ts['rate'], '-', drawstyle='steps-post', label=self.name)
+        rate_upper = []
 
-        if self.ts.__class__.__name__ == 'TimeSeries':
-            # Query errors
-            xerr = self.ts['time_err_pos'], self.ts['time_err_pos']
-            yerr = self.ts['rate_err_neg'], self.ts['rate_err_neg']
-            plt.errorbar(self.ts.time.mjd, self.ts['rate'], xerr=xerr, yerr=yerr, fmt='s', ms=3, elinewidth=.5 ,label=self.name)  
+        for i in range(len(self.ts)):
+
+            rate_upper.append(self.ts['rate'][i] + self.ts['rate_err_pos'][i])
+
+        return rate_upper
 
 
     def binning(self, bin_days=10):
@@ -336,15 +320,22 @@ class Lightcurve():
         lc = copy.deepcopy(self)
 
         # Select fraction
-        lc.ts = lc.ts.loc[start_time:end_time]
-
-        # Change name
-        lc.name = lc.name + "_frac"
+        lc.ts = lc.ts.loc[Time(start_time, format='mjd'):Time(end_time, format='mjd')]
 
         return lc
 
 
-    def fit_gaussian(self, amplitude, mean):
+    def plot_lc(self):
+
+        # Query errors
+        xerr = self.ts['time_err_pos'], self.ts['time_err_pos']
+        yerr = self.ts['rate_err_neg'], self.ts['rate_err_neg']
+
+        # Plot errorbars
+        plt.errorbar(self.ts.time.mjd, self.ts['rate'], xerr=xerr, yerr=yerr, color='k', fmt='s', ms=3, elinewidth=.5)  
+
+
+    def fit_gaussian(self, amplitude, mean, amplitude_fixed=False, save=True):
         print(f'gaussian_fit: fitting {self.name}...')
 
         # Query x and y
@@ -352,9 +343,14 @@ class Lightcurve():
         y = self.ts['rate']
 
         # Fit gaussian
-        g_init = models.Gaussian1D(amplitude=amplitude, mean=mean, stddev=1.)
+        g_init = models.Gaussian1D(
+            amplitude=amplitude, 
+            mean=mean, 
+            stddev=3.)
+        g_init.amplitude.fixed = amplitude_fixed
+        # g_init.stddev.fixed=True
         fit = fitting.LevMarLSQFitter()
-        g = fit(g_init, x, y, weights=self.ts['rate_err_pos'])
+        g = fit(g_init, x, y, weights=1/self.ts['rate_err_pos'])
 
         # Print parameters
         print("--- Fit parameters ---")
@@ -365,13 +361,19 @@ class Lightcurve():
 
         # Plot the data with the best-fit model
         print('gaussian_fit: plotting...')
-        self.plot_lc_clean()
-        plt.plot(x, y, 'ks')
-        plt.plot(x, g(x), label='Gaussian')
+        self.plot_lc()
+        x = np.arange(x[0]-10, x[-1]+10, 0.1)
+        plt.plot(x, g(x), label='Gaussian fit')
+        props = dict(boxstyle='square', facecolor='white', alpha=0)
+        textstr = f'Amplitude = {g.amplitude.value:.2f}\nMean = {g.mean.value:.2f}\nStddev = {g.stddev.value:.2f}'
+        plt.text(0.05, 0.95, textstr, transform=plt.gca().transAxes,
+            verticalalignment='top', bbox=props)
         plt.title(f'{self.name} - {self.telescope}')
-        plt.xlabel('$Time$ $(MJD)$')
-        plt.ylabel('$Rate$')
-        plt.legend()
+        plt.xlabel('Time (MJD)')
+        plt.ylabel('Rate ($c$ $s^{-1}$)')
+        plt.legend(shadow=False, edgecolor='k')
+        if save:
+            plt.savefig(f'output/analysis/gaussian fits/{self.name}_{self.telescope}_{g.mean.value:.0f}.png', dpi=150)
         plt.show()
 
         return 

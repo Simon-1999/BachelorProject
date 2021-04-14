@@ -1,2 +1,3 @@
-from .lightcurves import single_lc
-from .lightcurves import multiple_lcs
+from .lightcurves import lc_modes
+from .lightcurves import lcs_fill
+from .lightcurves import lcs_multi

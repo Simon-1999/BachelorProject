@@ -19,7 +19,7 @@
         "path": "data/RXTE/WGAJ1715.3-2635/WGAJ1715_lc.txt",
         "read_type": "RXTE"
     },
-    "XTEJ1118+480_ASM": {
+    "XTEJ1118+480": {
         "path": "data/RXTE/XTEJ1118+480_ASM/xtej1118_ASM.txt",
         "read_type": "RXTE"
     },
