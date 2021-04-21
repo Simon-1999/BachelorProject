@@ -21,7 +21,7 @@
     },
     "XTEJ1118+480": {
         "path": "data/RXTE/XTEJ1118+480_ASM/xtej1118_ASM.txt",
-        "read_type": "RXTE"
+        "read_type": "RXTE_asm"
     },
     "XTEJ1637-498": {
         "path": "data/RXTE/XTEJ1637-498/XTEJ1637_lc.txt",

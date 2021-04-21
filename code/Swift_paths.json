@@ -1,7 +1,7 @@
 {
     "IGRJ17177-3656": {
         "path": "data/Swift/IGRJ17177-3656/curve_plain.dat",
-        "read_type": "Swift"
+        "read_type": "Swiftsec_2"
     },
     "IGRJ17451-3022": {
         "path": "data/Swift/IGRJ17451-3022/curve_plain.dat",

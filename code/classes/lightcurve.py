@@ -24,6 +24,7 @@ class Lightcurve():
         self.ts = self.load_ts()
         self.ts.sort('time')
 
+
     def load_ts(self):
 
         # Search for filepath
@@ -34,23 +35,29 @@ class Lightcurve():
 
         # Select reading method
         if read_type == 'RXTE':
-            return self.load_rxte_ts(file)
+            return self.load_rxte_pca(file)
+
+        elif read_type == 'RXTE_asm':
+            return self.load_rxte_asm(file)
         
         elif read_type == "Swift":
-            return self.load_swift_ts(file)
+            return self.load_swift(file)
 
         elif read_type == "Swiftsec":
-            return self.load_swiftsec_ts(file)
+            return self.load_swift_sec(file, 54368.68333046)
+
+        elif read_type == "Swiftsec_2":
+            return self.load_swift_sec(file, 55588.34722681)
 
         elif read_type == 'SwiftGC':
-            return self.load_swiftgc_ts(file)
+            return self.load_swiftgc(file)
 
         else:
             print('[Error] Telescope name unkown, could not load...')
 
 
-    def load_rxte_ts(self, file):
-        print(f'Lightcurve: loading rxte file {file} ...')
+    def load_rxte_asm(self, file):
+        print(f'load_rxte_asm: loading rxte file...')
 
         # Initialize temporary storage frame
         times = []
@@ -73,7 +80,7 @@ class Lightcurve():
             l_strip = l.strip()
         
             # Process data
-            if l_strip[0] != ";" and l_strip[0] != "%":
+            if l_strip[0] != "%":
 
                 # Make list of columns
                 l_split = l_strip.split()
@@ -85,7 +92,7 @@ class Lightcurve():
                 data['rate'].append(float(l_split[1]))
                 data['rate_err_pos'].append(abs(float(l_split[2])))
                 data['rate_err_neg'].append(abs(float(l_split[2])))
-                data['mode'].append('RXTE')    
+                data['mode'].append('ASM')    
 
         # Close file
         read_file.close()
@@ -96,8 +103,55 @@ class Lightcurve():
         return ts
 
 
-    def load_swift_ts(self, file):
-        print(f'Lightcurve: loading swift file {file} ...')
+    def load_rxte_pca(self, file):
+        print(f'load_rxte_pca: loading rxte file...')
+
+        # Initialize temporary storage frame
+        times = []
+        data = {        
+            'time_err_pos': [],
+            'time_err_neg': [],
+            'rate': [],
+            'rate_err_pos': [],
+            'rate_err_neg': [],
+            'mode': [],
+        }
+
+        # Open read file
+        read_file= open(file,'r')
+
+        # Loop over file
+        for l in read_file:
+
+            # Remove leading or trailing spaces
+            l_strip = l.strip()
+        
+            # Process data
+            if l_strip[0] != ";":
+
+                # Make list of columns
+                l_split = l_strip.split()
+
+                # Temporary save
+                times.append(l_split[0])
+                data['time_err_pos'].append(0)
+                data['time_err_neg'].append(0)
+                data['rate'].append(float(l_split[1]))
+                data['rate_err_pos'].append(abs(float(l_split[2])))
+                data['rate_err_neg'].append(abs(float(l_split[2])))
+                data['mode'].append('PCA')    
+
+        # Close file
+        read_file.close()
+
+        # Make timeseries object
+        ts = TimeSeries(time=Time(times, format='mjd'),
+                        data=data)
+        return ts
+
+
+    def load_swift(self, file):
+        print(f'load_swift: loading Swift file...')
 
         # Initialize temporary storage frame
         times = []
@@ -162,8 +216,8 @@ class Lightcurve():
         return ts
 
 
-    def load_swiftsec_ts(self, file):
-        print(f'Loading file {file} ...')
+    def load_swift_sec(self, file, mjd_offset):
+        print(f'load_swift_sec: loading Swift file...')
 
         # Initialize temporary storage frame
         times = []
@@ -201,7 +255,7 @@ class Lightcurve():
                 rate_error_down = l_split[5]
 
                 # Temporary save
-                times.append(str(54368.68333046 + float(l_split[0])/60/60/24))
+                times.append(str(mjd_offset + float(l_split[0])/60/60/24))
                 data['time_err_pos'].append(float(l_split[1])/60/60/24)
                 data['time_err_neg'].append(abs(float(l_split[2])/60/60/24))
                 data['rate'].append(float(l_split[3]))
@@ -229,8 +283,8 @@ class Lightcurve():
         return ts
 
 
-    def load_swiftgc_ts(self, file):
-        print(f'Lightcurve: loading Swift GC file {file} ...')
+    def load_swiftgc(self, file):
+        print(f'load_swiftgc: loading Swift GC file...')
 
         # Initialize temporary storage frame
         times = []
@@ -258,14 +312,15 @@ class Lightcurve():
                 # Make list of columns
                 l_split = l_strip.split()
 
-                # Temporary save
-                times.append(l_split[2])
-                data['time_err_pos'].append(0)
-                data['time_err_neg'].append(0)
-                data['rate'].append(float(l_split[13]))
-                data['rate_err_pos'].append(abs(float(l_split[14])))
-                data['rate_err_neg'].append(abs(float(l_split[14])))
-                data['mode'].append('SwiftGC')    
+                if float(l_split[13]) > 0:
+                    # Temporary save
+                    times.append(l_split[2])
+                    data['time_err_pos'].append(0)
+                    data['time_err_neg'].append(0)
+                    data['rate'].append(float(l_split[13]))
+                    data['rate_err_pos'].append(abs(float(l_split[14])))
+                    data['rate_err_neg'].append(abs(float(l_split[14])))
+                    data['mode'].append('SwiftGC')    
 
         # Close file
         read_file.close()
@@ -346,7 +401,7 @@ class Lightcurve():
         g_init = models.Gaussian1D(
             amplitude=amplitude, 
             mean=mean, 
-            stddev=3.)
+            stddev=5.)
         g_init.amplitude.fixed = amplitude_fixed
         # g_init.stddev.fixed=True
         fit = fitting.LevMarLSQFitter()
@@ -361,6 +416,16 @@ class Lightcurve():
 
         # Plot the data with the best-fit model
         print('gaussian_fit: plotting...')
+        plt.style.use('default')
+        mpl.rcParams['font.family'] = "Tw Cen MT"
+        mpl.rcParams['patch.linewidth'] = .8
+        plt.rcParams['xtick.major.size'] = 5.0
+        plt.rcParams['xtick.minor.size'] = 3.0
+        plt.rcParams['ytick.major.size'] = 5.0
+        plt.rcParams['ytick.minor.size'] = 3.0
+        plt.rcParams['xtick.direction'] = 'in'
+        plt.rcParams['ytick.direction'] = 'in'
+        plt.minorticks_on()
         self.plot_lc()
         x = np.arange(x[0]-10, x[-1]+10, 0.1)
         plt.plot(x, g(x), label='Gaussian fit')
@@ -370,11 +435,67 @@ class Lightcurve():
             verticalalignment='top', bbox=props)
         plt.title(f'{self.name} - {self.telescope}')
         plt.xlabel('Time (MJD)')
-        plt.ylabel('Rate ($c$ $s^{-1}$)')
+        plt.ylabel('Rate ($\mathregular{c}$ $\mathregular{s}^{\mathregular{-1}}$)')
         plt.legend(shadow=False, edgecolor='k')
         if save:
             plt.savefig(f'output/analysis/gaussian fits/{self.name}_{self.telescope}_{g.mean.value:.0f}.png', dpi=150)
         plt.show()
 
         return 
+
+
+    def fit_exp(self, amplitude=5, tau=-1, save=False):
+        print(f'fit_exp: fitting {self.name}...')
+
+        # Query x and y
+        x = self.ts.time.mjd
+        t_start = float(x[0])
+        for i, t in enumerate(x):
+            x[i] = str(float(x[i]) - t_start)
+        y = self.ts['rate']
+
+        # Fit exponent
+        g_init = models.Exponential1D(amplitude=amplitude, tau=tau)
+        fit = fitting.LevMarLSQFitter()
+        g = fit(g_init, x, y, weights=1/self.ts['rate_err_pos'])
+
+        # Print parameters
+        print("--- Fit parameters ---")
+        print(f'Amplitude = {g.amplitude.value}')
+        print(f'Tau = {g.tau.value}')
+        print("----------------------")
+
+        # Plot the data with the best-fit model
+        print('fit_exp: plotting...')
+        plt.style.use('default')
+        plt.rc('axes', unicode_minus=False)
+        mpl.rcParams['font.family'] = "Tw Cen MT"
+        mpl.rcParams['patch.linewidth'] = .8
+        plt.rcParams['xtick.major.size'] = 5.0
+        plt.rcParams['xtick.minor.size'] = 3.0
+        plt.rcParams['xtick.top'] = True
+        plt.rcParams['ytick.major.size'] = 5.0
+        plt.rcParams['ytick.minor.size'] = 3.0
+        plt.rcParams['ytick.right'] = True
+        plt.rcParams['xtick.direction'] = 'in'
+        plt.rcParams['ytick.direction'] = 'in'
+        plt.minorticks_on()
+        self.plot_lc()
+        x = np.arange(x[0], x[-1]+1, 0.1)
+        plt.plot(x, g(x), 'k--', label='Exponential fit')
+        props = dict(boxstyle='square', facecolor='white', alpha=0)
+        textstr = f'Amplitude = {g.amplitude.value:.2f}\nTau = {g.tau.value:.2f}'
+        plt.text(0.05, 0.05, textstr, transform=plt.gca().transAxes,
+            verticalalignment='bottom', bbox=props)
+        plt.title(f'{self.name} - {self.telescope}')
+        plt.xlabel('Time (days)')
+        plt.ylabel('Rate ($\mathregular{c}$ $\mathregular{s}^{\mathregular{-1}}$)')
+        plt.legend(shadow=False, edgecolor='k')
+        if save:
+            plt.savefig(f'output/analysis/exponential fits/{self.name}_{self.telescope}_{t_start:.0f}.png', dpi=150)
+        plt.show()
+
+        return 
+
+    
 

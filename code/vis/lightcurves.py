@@ -7,6 +7,8 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib as mpl
+from .plotstyles import *
+
 
 def lc_modes(lc, show=True, save=False, styling=False):
     print('lc_modes: Plotting...')
@@ -21,14 +23,15 @@ def lc_modes(lc, show=True, save=False, styling=False):
 
     # Labels
     plt.xlabel('Time (MJD)')
-    plt.ylabel('Rate ($s^{-1}$)')
+    plt.ylabel('Rate ($\mathregular{c}$ $\mathregular{s}^{\mathregular{-1}}$)')
 
     # Plot lc
     CM = {
         'PC': 'r',
+        'PCA': 'b',
+        'ASM': 'r',
         'WT': 'b',
-        'Swift': 'g',
-        'RXTE': 'r'
+        'SwiftGC': 'g',
     }
 
     # Plot time vs rate
@@ -50,7 +53,7 @@ def lc_modes(lc, show=True, save=False, styling=False):
     plt.errorbar(lc.ts.time.mjd, lc.ts['rate'], xerr=xerr, yerr=yerr, color='k', fmt=' ', elinewidth=.5)   
 
     if save:
-        plt.savefig(f'output/lightcurves/single_lc_{lc.name}_{lc.telescope}.png', dpi=150)
+        plt.savefig(f'output/lightcurves/single_lc_{lc.name}_{lc.telescope}_1.png', dpi=250)
 
     if show:
         plt.show()
@@ -69,7 +72,7 @@ def lcs_fill(lcs, show=True, save=False, styling=False):
 
     # Labels
     plt.xlabel('Time (MJD)')
-    plt.ylabel('Rate ($s^{-1}$)')
+    plt.ylabel('Rate ($\mathregular{c}$ $\mathregular{s}^{\mathregular{-1}}$)')
 
     # Plot lcs
     ax = plt.gca()
@@ -105,18 +108,18 @@ def lcs_multi(lcs, show=True, save=False, styling=False):
 
     # Axis
     plt.xlabel('Time (MJD)')
-    plt.ylabel('Rate ($s^{-1}$)')
+    plt.ylabel('Rate ($\mathregular{c}$ $\mathregular{s}^{\mathregular{-1}}$)')
 
     # Light curves
     for lc in lcs:
         if lc.ts.__class__.__name__ == 'BinnedTimeSeries':
-            plt.plot(lc.ts['time_bin_start'].mjd, lc.ts['rate'], '-', drawstyle='steps-post', label=lc.name)
+            plt.plot(lc.ts['time_bin_start'].mjd, lc.ts['rate'], '-', drawstyle='steps-post', label=f'{lc.name} - {lc.telescope}')
 
         if lc.ts.__class__.__name__ == 'TimeSeries':
             # Query errors
             xerr = lc.ts['time_err_pos'], lc.ts['time_err_pos']
             yerr = lc.ts['rate_err_neg'], lc.ts['rate_err_neg']
-            plt.errorbar(lc.ts.time.mjd, lc.ts['rate'], xerr=xerr, yerr=yerr, fmt='s', ms=3, elinewidth=.5 ,label=lc.name)  
+            plt.errorbar(lc.ts.time.mjd, lc.ts['rate'], xerr=xerr, yerr=yerr, fmt='s', ms=3, elinewidth=.5, label=f'{lc.name} - {lc.telescope}')  
 
     # Legend
     plt.legend(shadow=False, edgecolor='k')
@@ -127,33 +130,4 @@ def lcs_multi(lcs, show=True, save=False, styling=False):
     if show:
         plt.show()
 
-
-def default_style():
-
-    plt.style.use('default')
-    mpl.rcParams['patch.linewidth'] = .8
-    plt.rcParams['xtick.major.size'] = 5.0
-    plt.rcParams['xtick.minor.size'] = 3.0
-    plt.rcParams['ytick.major.size'] = 5.0
-    plt.rcParams['ytick.minor.size'] = 3.0
-    plt.rcParams['xtick.direction'] = 'in'
-    plt.rcParams['ytick.direction'] = 'in'
-
-
-def science_style():
-
-    plt.style.use('default')
-    plt.rcParams["axes.labelweight"] = "light"
-    plt.rcParams["font.weight"] = "light"
-    mpl.rcParams['patch.linewidth'] = .8
-    plt.rcParams['text.usetex'] = True
-    plt.rcParams['font.size'] = 15
-    plt.rcParams['legend.fontsize'] = 18
-    plt.rcParams['xtick.major.size'] = 5.0
-    plt.rcParams['xtick.minor.size'] = 3.0
-    plt.rcParams['ytick.major.size'] = 5.0
-    plt.rcParams['ytick.minor.size'] = 3.0
-    plt.rcParams['xtick.direction'] = 'in'
-    plt.rcParams['ytick.direction'] = 'in'
-    plt.minorticks_on()
-    
+   
