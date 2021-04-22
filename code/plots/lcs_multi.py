@@ -34,7 +34,7 @@ def lcs_multi(lcs, show=True, save=False, styling=False):
             plt.errorbar(lc.ts.time.mjd, lc.ts['rate'], xerr=xerr, yerr=yerr, fmt='s', ms=3, elinewidth=.5, label=f'{lc.name} - {lc.telescope}')  
 
     # Legend
-    plt.legend(shadow=False, edgecolor='k')
+    plt.legend(shadow=False, edgecolor='k', fancybox=False, borderaxespad=1)
 
     if save:
         plt.savefig(f'output/analysis/lcs_multi.png', dpi=200)

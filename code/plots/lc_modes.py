@@ -42,8 +42,8 @@ def lc_modes(lc, show=True, save=False, styling=False):
     patches = []
     for mode in CM.keys():
         if mode in lc.ts['mode']:
-            patches.append(mpatches.Patch(color=CM[mode], label=f'{mode} mode'))
-    plt.legend(handles=patches, shadow=False, edgecolor='k')
+            patches.append(mpatches.Patch(color=CM[mode], label=f'{mode}'))
+    plt.legend(handles=patches, shadow=False, edgecolor='k', fancybox=False, borderaxespad=1)
 
     # Query errors
     xerr = lc.ts['time_err_pos'], lc.ts['time_err_pos']

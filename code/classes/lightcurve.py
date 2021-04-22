@@ -390,7 +390,7 @@ class Lightcurve():
         plt.errorbar(self.ts.time.mjd, self.ts['rate'], xerr=xerr, yerr=yerr, color='k', fmt='s', ms=3, elinewidth=.5)  
 
 
-    def fit_gaussian(self, amplitude, mean, amplitude_fixed=False, save=True):
+    def fit_gaussian(self, amplitude, mean, amplitude_fixed=False, save=False):
         print(f'gaussian_fit: fitting {self.name}...')
 
         # Query x and y
@@ -417,6 +417,7 @@ class Lightcurve():
         # Plot the data with the best-fit model
         print('gaussian_fit: plotting...')
         plt.style.use('default')
+        plt.rc('axes', unicode_minus=False)
         mpl.rcParams['font.family'] = "Tw Cen MT"
         mpl.rcParams['patch.linewidth'] = .8
         plt.rcParams['xtick.major.size'] = 5.0
@@ -428,7 +429,7 @@ class Lightcurve():
         plt.minorticks_on()
         self.plot_lc()
         x = np.arange(x[0]-10, x[-1]+10, 0.1)
-        plt.plot(x, g(x), label='Gaussian fit')
+        plt.plot(x, g(x), 'k--', label='Gaussian fit')
         props = dict(boxstyle='square', facecolor='white', alpha=0)
         textstr = f'Amplitude = {g.amplitude.value:.2f}\nMean = {g.mean.value:.2f}\nStddev = {g.stddev.value:.2f}'
         plt.text(0.05, 0.95, textstr, transform=plt.gca().transAxes,
@@ -436,7 +437,8 @@ class Lightcurve():
         plt.title(f'{self.name} - {self.telescope}')
         plt.xlabel('Time (MJD)')
         plt.ylabel('Rate ($\mathregular{c}$ $\mathregular{s}^{\mathregular{-1}}$)')
-        plt.legend(shadow=False, edgecolor='k')
+        plt.legend(shadow=False, edgecolor='k', fancybox=False, borderaxespad=1)
+        
         if save:
             plt.savefig(f'output/analysis/gaussian fits/{self.name}_{self.telescope}_{g.mean.value:.0f}.png', dpi=150)
         plt.show()
@@ -484,13 +486,16 @@ class Lightcurve():
         x = np.arange(x[0], x[-1]+1, 0.1)
         plt.plot(x, g(x), 'k--', label='Exponential fit')
         props = dict(boxstyle='square', facecolor='white', alpha=0)
-        textstr = f'Amplitude = {g.amplitude.value:.2f}\nTau = {g.tau.value:.2f}'
-        plt.text(0.05, 0.05, textstr, transform=plt.gca().transAxes,
-            verticalalignment='bottom', bbox=props)
+        plt.plot([], [], ' ', label=f"Tau = {g.tau.value:.2f}")
+        plt.plot([], [], ' ', label=f"Amplitude = {g.amplitude.value:.2f}")
+        # textstr = f'Amplitude = {g.amplitude.value:.2f}\nTau = {g.tau.value:.2f}'
+        # plt.text(0.05, 0.05, textstr, transform=plt.gca().transAxes,
+        #     verticalalignment='bottom', bbox=props)
         plt.title(f'{self.name} - {self.telescope}')
         plt.xlabel('Time (days)')
         plt.ylabel('Rate ($\mathregular{c}$ $\mathregular{s}^{\mathregular{-1}}$)')
-        plt.legend(shadow=False, edgecolor='k')
+        plt.legend(shadow=False, edgecolor='k', fancybox=False, borderaxespad=1)
+        # lg.get_frame().set_boxstyle('square', pad=0.0)
         if save:
             plt.savefig(f'output/analysis/exponential fits/{self.name}_{self.telescope}_{t_start:.0f}.png', dpi=150)
         plt.show()

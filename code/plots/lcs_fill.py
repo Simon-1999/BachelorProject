@@ -34,7 +34,7 @@ def lcs_fill(lcs, show=True, save=False, styling=False):
             plt.fill_between(lc.ts.time.mjd, lc.get_rate_upper(), lc.get_rate_lower(), color=color, alpha=.3)  
 
     # Legend
-    plt.legend(shadow=False, edgecolor='k')
+    plt.legend(shadow=False, edgecolor='k', fancybox=False, borderaxespad=1)
 
     if save:
         plt.savefig(f'output/analysis/lcs_fill.png', dpi=150)
