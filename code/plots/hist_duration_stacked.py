@@ -10,7 +10,7 @@ import numpy as np
 from .plotstyles import *
 import matplotlib.ticker as ticker
 
-def hist_duration(durations, bins=20, styling=False, save=False, show=True, log=True):
+def hist_duration_stacked(durations, labels, bins=20, styling=False, save=False, show=True, log=True):
 
     if styling:
         science_style()
@@ -24,6 +24,11 @@ def hist_duration(durations, bins=20, styling=False, save=False, show=True, log=
     # Title
     plt.title('Outburst duration distribution')
 
+    colors = []
+    color_idx = np.linspace(0, 1, len(durations))
+    for i in color_idx:
+        colors.append(plt.cm.jet(i))
+
     # Histogram
     if log:
         bin_list = 10**np.linspace(0.7, 2.8, bins)
@@ -32,7 +37,10 @@ def hist_duration(durations, bins=20, styling=False, save=False, show=True, log=
         
     plt.hist(durations, 
         bins=bin_list, 
-        fill=False)
+        stacked=True,
+        color=colors,
+        label=labels)
+    plt.legend(shadow=False, edgecolor='k', fancybox=False, borderaxespad=1)
 
     # Axis
     if log:

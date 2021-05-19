@@ -10,7 +10,7 @@ import numpy as np
 from .plotstyles import *
 import matplotlib.ticker as ticker
 
-def hist_decay(decays, bins=20, styling=False, save=False, show=True, log=True):
+def hist_decay_stacked(decays, labels, bins=20, styling=False, save=False, show=True, log=True):
 
     if styling:
         science_style()
@@ -24,6 +24,11 @@ def hist_decay(decays, bins=20, styling=False, save=False, show=True, log=True):
     # Title
     plt.title('Outburst decay time distribution')
 
+    colors = []
+    color_idx = np.linspace(0, 1, len(decays))
+    for i in color_idx:
+        colors.append(plt.cm.jet(i))
+
     # Histogram
     if log:
         bin_list = 10**np.linspace(0, 2.1, bins)
@@ -32,8 +37,10 @@ def hist_decay(decays, bins=20, styling=False, save=False, show=True, log=True):
         
     plt.hist(decays, 
         bins=bin_list, 
-        fill=False, 
-        color='k')
+        stacked=True,
+        color=colors,
+        label=labels)
+    plt.legend(shadow=False, edgecolor='k', fancybox=False, borderaxespad=1)
 
     # Axis
     if log:
