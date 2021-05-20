@@ -14,10 +14,10 @@ import plots
 from classes import Lightcurve
 
 # Loading light curve
-lc_name = 'XTEJ1734-234'
+lc_name = 'SAXJ1753.5-2349'
 lc_telescope = 'RXTE'
-lc_std = 3.76
-lc_avg = 1.119
+lc_std = 4.70637
+lc_avg = -0.25799
 lc1 = Lightcurve(lc_name, lc_telescope)
 # plots.lc_modes(lc1)
 
@@ -25,16 +25,19 @@ lc1 = Lightcurve(lc_name, lc_telescope)
 # lc1.calc_background('55555', '56440', save=False)
 
 # Get outburst region
-ob_peaktime = '51400'
-ob1 = lc1.get_outburst(ob_peaktime, std=lc_std)
+ob1_peaktime = '51392'
+ob1 = lc1.get_outburst(ob1_peaktime, std=lc_std)
 
 # Remove background
 ob1.correct_background(lc_avg)
 lc1.correct_background(lc_avg)
 
 # Fits
-gaussian_fit = ob1.fit_gaussian(ob_peaktime)
-plots.lc_fits(lc1, ob1, [gaussian_fit])
+gaussian_fit, fit_stddev, fit_mean, fit_dur = ob1.fit_gaussian(ob1_peaktime)
+plots.lc_gaussian(lc1, ob1, fit_dur, gaussian_fit, fit_stddev)
+
+exponential_fit, fit_tdecay, ob1_decay = ob1.fit_decay()
+plots.lc_exponential(lc1, ob1, ob1_decay, exponential_fit, fit_tdecay)
 
 # ob1 = lc1.get_fraction('53500', '55000')
 # print(f"Stddev = {np.std(ob1.ts['rate'])}")

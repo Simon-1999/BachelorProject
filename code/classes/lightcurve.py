@@ -610,8 +610,10 @@ class Lightcurve():
         plt.errorbar(self.ts.time.mjd, self.ts['rate'], xerr=xerr, yerr=yerr, color='k', fmt='s', ms=3, elinewidth=.5)  
 
 
-    def fit_gaussian(self, mean, amplitude_fixed=False, save=False):
+    def fit_gaussian(self, mean, amplitude_fixed=False, stddev_fixed=False, save=False):
         print(f'gaussian_fit: fitting {self.name}...')
+
+        STDDEV_DURATION_RATIO = 3
 
         lc = copy.deepcopy(self)
 
@@ -619,63 +621,57 @@ class Lightcurve():
         x = self.ts.time.mjd
         y = self.ts['rate']
 
-        amplitude = max(self.ts['rate'])
-
-        # Fit gaussian
+        # Set initial gauss to peak
+        peak = self.get_peak_row()
+        amplitude = peak['rate']
+        mean = peak['time'].mjd
+        print(mean)
         g_init = models.Gaussian1D(
             amplitude=amplitude, 
             mean=mean, 
             stddev=6.)
 
+        # Fixing parameters
         g_init.amplitude.fixed = amplitude_fixed
-        # g_init.stddev.fixed=True
+        g_init.stddev.fixed = stddev_fixed
+
+        # Fitting
         fit = fitting.LevMarLSQFitter()
         g = fit(g_init, x, y, weights=1/self.ts['rate_err_pos'])
 
         # Print parameters
+        fit_std = g.stddev.value
+        fit_mean = g.mean.value
         print("--- Fit parameters ---")
         print(f'Amplitude = {g.amplitude.value}')
         print(f'Mean = {g.mean.value}')
         print(f'Stddev = {g.stddev.value}')
         print("----------------------")
 
-        # Plot the data with the best-fit model
-        print('gaussian_fit: plotting...')
-
-        # Style
-        plt.style.use('default')
-        plt.rc('axes', unicode_minus=False)
-        mpl.rcParams['font.family'] = "Tw Cen MT"
-        mpl.rcParams['patch.linewidth'] = .8
-        plt.rcParams['xtick.major.size'] = 5.0
-        plt.rcParams['xtick.minor.size'] = 3.0
-        plt.rcParams['xtick.top'] = True
-        plt.rcParams['ytick.major.size'] = 5.0
-        plt.rcParams['ytick.minor.size'] = 3.0
-        plt.rcParams['ytick.right'] = True
-        plt.rcParams['xtick.direction'] = 'in'
-        plt.rcParams['ytick.direction'] = 'in'
-        plt.minorticks_on()
-
-        # Plot lightcurve
-        self.plot_lc()
-
-        # Plot gauss
+        # Make gauss curve streching all data point
         x_gauss = np.arange(x[0]-10, x[-1]+10, 0.1)
         y_gauss = g(x_gauss)
-        # plt.plot(x_gauss, y_gauss, 'r-', lw=1, label='Gaussian fit')
 
-        data = {        
-            'rate': y_gauss,
-        }
-
-        # Make timeseries object
+        # Save into new lightcurve
+        data = {'rate': y_gauss}
         ts = TimeSeries(time=Time(x_gauss, format='mjd'),
                         data=data)
-
         lc.ts = ts
         lc.name = 'Gaussian fit'
-        return lc
+
+        # Make gauss curve streching 6stddev
+        x_gauss = np.arange(fit_mean - fit_std*STDDEV_DURATION_RATIO, fit_mean + fit_std*STDDEV_DURATION_RATIO, 0.1)
+        y_gauss = g(x_gauss)
+
+        # Save into new lightcurve
+        data = {'rate': y_gauss}
+        ts = TimeSeries(time=Time(x_gauss, format='mjd'),
+                        data=data)
+        lc_dur = copy.deepcopy(self)
+        lc_dur.ts = ts
+        lc_dur.name = f'Gaussian fit {STDDEV_DURATION_RATIO}stddev'
+
+        return lc, fit_std, fit_mean, lc_dur
 
         # # Plot 1 std deviation
 
@@ -808,62 +804,111 @@ class Lightcurve():
         # return 
 
 
-    def fit_exp(self, amplitude=5, tau=-1, save=False):
-        print(f'fit_exp: fitting {self.name}...')
+    def fit_decay(self, amplitude=5, tau=-1, save=False):
+        print(f'fit_decay: fitting {self.name}...')
+
+        lc_decay = self.get_decay_region()
+        lc_fit = copy.deepcopy(self)        
 
         # Query x and y
-        x = self.ts.time.mjd
+        x = lc_decay.ts.time.mjd
         t_start = float(x[0])
         for i, t in enumerate(x):
             x[i] = str(float(x[i]) - t_start)
-        y = self.ts['rate']
+        y = lc_decay.ts['rate']
 
         # Fit exponent
-        g_init = models.Exponential1D(amplitude=amplitude, tau=tau)
+        e_init = models.Exponential1D(amplitude=amplitude, tau=tau)
         fit = fitting.LevMarLSQFitter()
-        g = fit(g_init, x, y, weights=1/self.ts['rate_err_pos'])
+        e = fit(e_init, x, y, weights=1/lc_decay.ts['rate_err_pos'])
 
         # Print parameters
+        fit_amplitude = e.amplitude.value
+        fit_tdecay = e.tau.value
         print("--- Fit parameters ---")
-        print(f'Amplitude = {g.amplitude.value}')
-        print(f'Tau = {g.tau.value}')
+        print(f'Amplitude = {fit_amplitude}')
+        print(f'Tau = {fit_tdecay}')
         print("----------------------")
 
-        # Plot the data with the best-fit model
-        print('fit_exp: plotting...')
-        plt.style.use('default')
-        plt.rc('axes', unicode_minus=False)
-        mpl.rcParams['font.family'] = "Tw Cen MT"
-        mpl.rcParams['patch.linewidth'] = .8
-        plt.rcParams['xtick.major.size'] = 5.0
-        plt.rcParams['xtick.minor.size'] = 3.0
-        plt.rcParams['xtick.top'] = True
-        plt.rcParams['ytick.major.size'] = 5.0
-        plt.rcParams['ytick.minor.size'] = 3.0
-        plt.rcParams['ytick.right'] = True
-        plt.rcParams['xtick.direction'] = 'in'
-        plt.rcParams['ytick.direction'] = 'in'
-        plt.minorticks_on()
-        self.plot_lc()
-        x = np.arange(x[0], x[-1]+1, 0.1)
-        plt.plot(x, g(x), 'k--', label='Exponential fit')
-        props = dict(boxstyle='square', facecolor='white', alpha=0)
-        plt.plot([], [], ' ', label=f"Tau = {g.tau.value:.2f}")
-        plt.plot([], [], ' ', label=f"Amplitude = {g.amplitude.value:.2f}")
-        # textstr = f'Amplitude = {g.amplitude.value:.2f}\nTau = {g.tau.value:.2f}'
-        # plt.text(0.05, 0.05, textstr, transform=plt.gca().transAxes,
-        #     verticalalignment='bottom', bbox=props)
-        plt.title(f'{self.name} - {self.telescope}')
-        plt.yscale('log')
-        plt.xlabel('Time (days)')
-        plt.ylabel('Rate ($\mathregular{c}$ $\mathregular{s}^{\mathregular{-1}}$)')
-        plt.legend(shadow=False, edgecolor='k', fancybox=False, borderaxespad=1)
-        # lg.get_frame().set_boxstyle('square', pad=0.0)
-        if save:
-            plt.savefig(f'output/analysis/exponential fits/{self.name}_{self.telescope}_{t_start:.0f}.png', dpi=150)
-        plt.show()
+        # Make gauss curve
+        x_exp = np.arange(x[0], x[-1] + 1, 0.1)
+        x_mod = x_exp + t_start
+        y_exp = e(x_exp)
 
-        return 
+        # Save into ts
+        data = {'rate': y_exp}
+        ts = TimeSeries(time=Time(x_mod, format='mjd'),
+                        data=data)
+        lc_fit.ts = ts
+
+        # Change name
+        lc_fit.name = 'Exponential fit decay'
+        print(lc_decay.ts)
+
+        return lc_fit, fit_tdecay, lc_decay
+
+        # # Plot the data with the best-fit model
+        # print('fit_exp: plotting...')
+        # plt.style.use('default')
+        # plt.rc('axes', unicode_minus=False)
+        # mpl.rcParams['font.family'] = "Tw Cen MT"
+        # mpl.rcParams['patch.linewidth'] = .8
+        # plt.rcParams['xtick.major.size'] = 5.0
+        # plt.rcParams['xtick.minor.size'] = 3.0
+        # plt.rcParams['xtick.top'] = True
+        # plt.rcParams['ytick.major.size'] = 5.0
+        # plt.rcParams['ytick.minor.size'] = 3.0
+        # plt.rcParams['ytick.right'] = True
+        # plt.rcParams['xtick.direction'] = 'in'
+        # plt.rcParams['ytick.direction'] = 'in'
+        # plt.minorticks_on()
+        # self.plot_lc()
+        # x = np.arange(x[0], x[-1]+1, 0.1)
+        # plt.plot(x, g(x), 'k--', label='Exponential fit')
+        # props = dict(boxstyle='square', facecolor='white', alpha=0)
+        # plt.plot([], [], ' ', label=f"Tau = {g.tau.value:.2f}")
+        # plt.plot([], [], ' ', label=f"Amplitude = {g.amplitude.value:.2f}")
+        # # textstr = f'Amplitude = {g.amplitude.value:.2f}\nTau = {g.tau.value:.2f}'
+        # # plt.text(0.05, 0.05, textstr, transform=plt.gca().transAxes,
+        # #     verticalalignment='bottom', bbox=props)
+        # plt.title(f'{self.name} - {self.telescope}')
+        # plt.yscale('log')
+        # plt.xlabel('Time (days)')
+        # plt.ylabel('Rate ($\mathregular{c}$ $\mathregular{s}^{\mathregular{-1}}$)')
+        # plt.legend(shadow=False, edgecolor='k', fancybox=False, borderaxespad=1)
+        # # lg.get_frame().set_boxstyle('square', pad=0.0)
+        # if save:
+        #     plt.savefig(f'output/analysis/exponential fits/{self.name}_{self.telescope}_{t_start:.0f}.png', dpi=150)
+        # plt.show()
+
+        # return 
+
+
+    def get_peak_row(self):
+
+        max_rate = 0
+        max_row = None
+
+        for row in self.ts:
+            rate = row['rate']
+
+            if rate > max_rate:
+                max_rate = rate
+                max_row = row
+
+        return max_row
+
+
+    def get_decay_region(self):
+
+        # Copy lightcurve
+        lc = copy.deepcopy(self)
+        
+        # Get decay region
+        t_start = str(self.get_peak_row()['time'])
+        t_end = self.ts.time.mjd[-1]
+
+        return self.get_fraction(t_start, t_end)
 
     
 

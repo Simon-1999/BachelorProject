@@ -1,5 +1,6 @@
 from .lc_modes import lc_modes
-from .lc_fits import lc_fits
+from .lc_gaussian import lc_gaussian
+from .lc_exponential import lc_exponential
 from .lcs_fill import lcs_fill
 from .lcs_multi import lcs_multi
 from .hist_duration_stacked import hist_duration_stacked
