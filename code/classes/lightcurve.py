@@ -57,7 +57,7 @@ class Lightcurve():
 
 
     def load_rxte_asm(self, file):
-        print(f'load_rxte_asm: loading rxte file...')
+        # print(f'load_rxte_asm: loading rxte file...')
 
         # Initialize temporary storage frame
         times = []
@@ -104,7 +104,7 @@ class Lightcurve():
 
 
     def load_rxte_pca(self, file):
-        print(f'load_rxte_pca: loading rxte file...')
+        # print(f'load_rxte_pca: loading rxte file...')
 
         # Initialize temporary storage frame
         times = []
@@ -151,7 +151,7 @@ class Lightcurve():
 
 
     def load_swift(self, file):
-        print(f'load_swift: loading Swift file...')
+        # print(f'load_swift: loading Swift file...')
 
         # Initialize temporary storage frame
         times = []
@@ -217,7 +217,7 @@ class Lightcurve():
 
 
     def load_swift_sec(self, file, mjd_offset):
-        print(f'load_swift_sec: loading Swift file...')
+        # print(f'load_swift_sec: loading Swift file...')
 
         # Initialize temporary storage frame
         times = []
@@ -284,7 +284,7 @@ class Lightcurve():
 
 
     def load_swiftgc(self, file):
-        print(f'load_swiftgc: loading Swift GC file...')
+        # print(f'load_swiftgc: loading Swift GC file...')
 
         # Initialize temporary storage frame
         times = []
@@ -375,7 +375,7 @@ class Lightcurve():
         lc = copy.deepcopy(self)
 
         # Select fraction
-        lc.ts = lc.ts.loc[Time(start_time, format='mjd'):Time(end_time, format='mjd')]
+        lc.ts = lc.ts.loc[Time(str(start_time - 0.01), format='mjd'):Time(str(end_time + 0.01), format='mjd')]
 
         return lc
 
@@ -472,44 +472,44 @@ class Lightcurve():
         
         ##### Plot outburst #####
 
-        # Style
-        plt.style.use('default')
-        plt.rc('axes', unicode_minus=False)
-        mpl.rcParams['font.family'] = "Tw Cen MT"
-        mpl.rcParams['patch.linewidth'] = .8
-        plt.rcParams['xtick.major.size'] = 5.0
-        plt.rcParams['xtick.minor.size'] = 3.0
-        plt.rcParams['xtick.top'] = True
-        plt.rcParams['ytick.major.size'] = 5.0
-        plt.rcParams['ytick.minor.size'] = 3.0
-        plt.rcParams['ytick.right'] = True
-        plt.rcParams['xtick.direction'] = 'in'
-        plt.rcParams['ytick.direction'] = 'in'
-        plt.minorticks_on()
+        # # Style
+        # plt.style.use('default')
+        # plt.rc('axes', unicode_minus=False)
+        # mpl.rcParams['font.family'] = "Tw Cen MT"
+        # mpl.rcParams['patch.linewidth'] = .8
+        # plt.rcParams['xtick.major.size'] = 5.0
+        # plt.rcParams['xtick.minor.size'] = 3.0
+        # plt.rcParams['xtick.top'] = True
+        # plt.rcParams['ytick.major.size'] = 5.0
+        # plt.rcParams['ytick.minor.size'] = 3.0
+        # plt.rcParams['ytick.right'] = True
+        # plt.rcParams['xtick.direction'] = 'in'
+        # plt.rcParams['ytick.direction'] = 'in'
+        # plt.minorticks_on()
 
-        # Title
-        plt.title(f'{self.name} - {self.telescope}')
+        # # Title
+        # plt.title(f'{self.name} - {self.telescope}')
 
-        # Full lichtcurve
-        xerr = self.ts['time_err_pos'], self.ts['time_err_pos']
-        yerr = self.ts['rate_err_neg'], self.ts['rate_err_neg']
-        plt.errorbar(self.ts.time.mjd, self.ts['rate'], xerr=xerr, yerr=yerr, color='gray', fmt='s', ms=3, elinewidth=.5, label='Background')  
+        # # Full lichtcurve
+        # xerr = self.ts['time_err_pos'], self.ts['time_err_pos']
+        # yerr = self.ts['rate_err_neg'], self.ts['rate_err_neg']
+        # plt.errorbar(self.ts.time.mjd, self.ts['rate'], xerr=xerr, yerr=yerr, color='gray', fmt='s', ms=3, elinewidth=.5, label='Background')  
 
-        # Outburst region
-        xerr = lc.ts['time_err_pos'], lc.ts['time_err_pos']
-        yerr = lc.ts['rate_err_neg'], lc.ts['rate_err_neg']
-        plt.errorbar(lc.ts.time.mjd, lc.ts['rate'], xerr=xerr, yerr=yerr, color='k', fmt='s', ms=3, elinewidth=.5, label='Outburst region')  
+        # # Outburst region
+        # xerr = lc.ts['time_err_pos'], lc.ts['time_err_pos']
+        # yerr = lc.ts['rate_err_neg'], lc.ts['rate_err_neg']
+        # plt.errorbar(lc.ts.time.mjd, lc.ts['rate'], xerr=xerr, yerr=yerr, color='k', fmt='s', ms=3, elinewidth=.5, label='Outburst region')  
 
-        # Std level
-        plt.plot([self.ts.time.mjd[0], self.ts.time.mjd[-1]], [std, std], 'k--', label='1$\sigma$')
+        # # Std level
+        # plt.plot([self.ts.time.mjd[0], self.ts.time.mjd[-1]], [std, std], 'k--', label='1$\sigma$')
 
-        # Set xlimit to outburst region
-        plt.xlim(ob_start_time - 25, ob_end_time + 25)
+        # # Set xlimit to outburst region
+        # plt.xlim(ob_start_time - 25, ob_end_time + 25)
 
-        # Legend
-        plt.legend(shadow=False, edgecolor='k', fancybox=False, borderaxespad=1)
+        # # Legend
+        # plt.legend(shadow=False, edgecolor='k', fancybox=False, borderaxespad=1)
 
-        plt.show()
+        # plt.show()
 
         return lc
 
@@ -519,6 +519,8 @@ class Lightcurve():
         SIGNAL_TRESSHOLD = 2
 
         i = 0
+        previous_time = ts[0]['time'].mjd
+
         for row in ts:
 
             below_std = row['rate'] < std
@@ -529,9 +531,19 @@ class Lightcurve():
             else:
                 i = 0
 
-            # End of outburst 
+            # End of outburst based on adjecent points below std
             if i == SIGNAL_TRESSHOLD:
-                return row['time'].mjd        
+                return row['time'].mjd 
+            
+            # Do not allow for huge gaps in data
+            if abs(row['time'].mjd - previous_time) > 50:
+                return previous_time
+
+            # Save previous time
+            previous_time = row['time'].mjd             
+
+        # If not found return last point in dataset
+        return row['time'].mjd 
 
 
     def calc_background(self, start_time, end_time, save=False):
@@ -597,7 +609,7 @@ class Lightcurve():
 
         self.ts['rate'] = self.ts['rate'] - background_level
 
-        print(f'correct_background: corrected for {background_level}')
+        # print(f'correct_background: corrected for {background_level}')
 
 
     def plot_lc(self):
@@ -610,8 +622,8 @@ class Lightcurve():
         plt.errorbar(self.ts.time.mjd, self.ts['rate'], xerr=xerr, yerr=yerr, color='k', fmt='s', ms=3, elinewidth=.5)  
 
 
-    def fit_gaussian(self, mean, amplitude_fixed=False, stddev_fixed=False, save=False):
-        print(f'gaussian_fit: fitting {self.name}...')
+    def fit_gaussian(self, amplitude_fixed=False, stddev_fixed=False, save=False):
+        # print(f'gaussian_fit: fitting {self.name}...')
 
         STDDEV_DURATION_RATIO = 3
 
@@ -625,11 +637,10 @@ class Lightcurve():
         peak = self.get_peak_row()
         amplitude = peak['rate']
         mean = peak['time'].mjd
-        print(mean)
         g_init = models.Gaussian1D(
             amplitude=amplitude, 
             mean=mean, 
-            stddev=6.)
+            stddev=2.)
 
         # Fixing parameters
         g_init.amplitude.fixed = amplitude_fixed
@@ -639,17 +650,31 @@ class Lightcurve():
         fit = fitting.LevMarLSQFitter()
         g = fit(g_init, x, y, weights=1/self.ts['rate_err_pos'])
 
+        # Constrain amplitude to reasonable values
+        if g.amplitude.value > 1.3 * amplitude:
+            g_init = models.Gaussian1D(
+                amplitude=1.3 * amplitude, 
+                mean=mean, 
+                stddev=2.)
+
+            # Fixing parameters
+            g_init.amplitude.fixed = True
+
+            # Fitting
+            fit = fitting.LevMarLSQFitter()
+            g = fit(g_init, x, y, weights=1/self.ts['rate_err_pos'])
+
         # Print parameters
         fit_std = g.stddev.value
         fit_mean = g.mean.value
-        print("--- Fit parameters ---")
-        print(f'Amplitude = {g.amplitude.value}')
-        print(f'Mean = {g.mean.value}')
-        print(f'Stddev = {g.stddev.value}')
-        print("----------------------")
+        # print("--- Fit parameters ---")
+        # print(f'Amplitude = {g.amplitude.value}')
+        # print(f'Mean = {g.mean.value}')
+        # print(f'Stddev = {g.stddev.value}')
+        # print("----------------------")
 
         # Make gauss curve streching all data point
-        x_gauss = np.arange(x[0]-10, x[-1]+10, 0.1)
+        x_gauss = np.arange(x[0], x[-1], 0.1)
         y_gauss = g(x_gauss)
 
         # Save into new lightcurve
@@ -671,7 +696,7 @@ class Lightcurve():
         lc_dur.ts = ts
         lc_dur.name = f'Gaussian fit {STDDEV_DURATION_RATIO}stddev'
 
-        return lc, fit_std, fit_mean, lc_dur
+        return lc, fit_std, fit_mean, lc_dur, g(x)
 
         # # Plot 1 std deviation
 
@@ -805,17 +830,22 @@ class Lightcurve():
 
 
     def fit_decay(self, amplitude=5, tau=-1, save=False):
-        print(f'fit_decay: fitting {self.name}...')
+        # print(f'fit_decay: fitting {self.name}...')
 
         lc_decay = self.get_decay_region()
         lc_fit = copy.deepcopy(self)        
 
         # Query x and y
-        x = lc_decay.ts.time.mjd
+        x = copy.deepcopy(lc_decay.ts.time.mjd)
         t_start = float(x[0])
         for i, t in enumerate(x):
             x[i] = str(float(x[i]) - t_start)
         y = lc_decay.ts['rate']
+
+        # Fit linear
+        # e_init = models.Linear1D()
+        # fit = fitting.LinearLSQFitter()
+        # e = fit(e_init, x, y, weights=1/lc_decay.ts['rate_err_pos'])
 
         # Fit exponent
         e_init = models.Exponential1D(amplitude=amplitude, tau=tau)
@@ -825,27 +855,29 @@ class Lightcurve():
         # Print parameters
         fit_amplitude = e.amplitude.value
         fit_tdecay = e.tau.value
-        print("--- Fit parameters ---")
-        print(f'Amplitude = {fit_amplitude}')
-        print(f'Tau = {fit_tdecay}')
-        print("----------------------")
+        # print("--- Fit parameters ---")
+        # print(f'Amplitude = {fit_amplitude}')
+        # print(f'Tau = {fit_tdecay}')
+        # print("----------------------")
 
-        # Make gauss curve
-        x_exp = np.arange(x[0], x[-1] + 1, 0.1)
+        # Make exponential curve
+        x_exp = np.arange(x[0], x[-1], 0.1)
         x_mod = x_exp + t_start
         y_exp = e(x_exp)
 
-        # Save into ts
+        # Save fit line into ts
         data = {'rate': y_exp}
         ts = TimeSeries(time=Time(x_mod, format='mjd'),
                         data=data)
         lc_fit.ts = ts
 
-        # Change name
-        lc_fit.name = 'Exponential fit decay'
-        print(lc_decay.ts)
+        # Fit y values on data x values
+        fit_y = e(x)
 
-        return lc_fit, fit_tdecay, lc_decay
+        # Change name
+        lc_fit.name = 'Exponential fit'
+
+        return lc_fit, fit_tdecay, lc_decay, fit_y
 
         # # Plot the data with the best-fit model
         # print('fit_exp: plotting...')
@@ -883,6 +915,46 @@ class Lightcurve():
 
         # return 
 
+    def fit_ld(self, save=False):
+        print(f'fit_decay: fitting {self.name}...')
+
+        lc_decay = self.get_decay_region()
+        lc_fit = copy.deepcopy(self)        
+
+        # Query x and y
+        x = copy.deepcopy(lc_decay.ts.time.mjd[10:-1])
+        t_start = float(x[0])
+        for i, t in enumerate(x):
+            x[i] = str(float(x[i]) - t_start)
+        y = lc_decay.ts['rate'][10:-1]
+
+        # Fit linear
+        l_init = models.Linear1D()
+        fit = fitting.LinearLSQFitter()
+        l = fit(l_init, x, y, weights=1/lc_decay.ts['rate_err_pos'][10:-1])
+
+        # Save params
+        fit_tdecay = -1 * l.slope.value
+
+        # Make fit curve
+        fit_x = np.arange(x[0], x[-1] + 1, 0.1)
+        ts_fit_y = l(fit_x)
+
+        # Save fit into ts
+        ts_fit_x = fit_x + t_start
+        data = {'rate': ts_fit_y}
+        ts = TimeSeries(time=Time(ts_fit_x, format='mjd'),
+                        data=data)
+        lc_fit.ts = ts
+
+        # Fit y values on data x values
+        fit_y = l(x)
+
+        # Change name
+        lc_fit.name = 'Linear fit'
+
+        return lc_fit, fit_tdecay, lc_decay, fit_y
+
 
     def get_peak_row(self):
 
@@ -908,7 +980,18 @@ class Lightcurve():
         t_start = str(self.get_peak_row()['time'])
         t_end = self.ts.time.mjd[-1]
 
-        return self.get_fraction(t_start, t_end)
+        return self.get_fraction(float(t_start), float(t_end))
+
+    def get_rise_region(self):
+
+        # Copy lightcurve
+        lc = copy.deepcopy(self)
+        
+        # Get decay region
+        t_start = self.ts.time.mjd[0]
+        t_end = str(self.get_peak_row()['time'])
+
+        return self.get_fraction(float(t_start), float(t_end))
 
     
 

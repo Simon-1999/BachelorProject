@@ -22,6 +22,6 @@ plots.hist_duration_stacked(obs['duration'], obs['labels'], bins=10, log=True)
 print('----- Decay timescale -----')
 # print(f"Average = {np.average(obs['exponent_tau'])}")
 # print(f"Median = {np.median(obs['exponent_tau'])}")
-# plots.hist_decay_stacked(obs['exponent_tau'], obs['labels'], bins=8, log=True)
+plots.hist_decay_stacked(obs['exponent_tau'], obs['labels'], bins=8, log=True)
 
 

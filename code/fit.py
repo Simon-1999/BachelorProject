@@ -14,30 +14,42 @@ import plots
 from classes import Lightcurve
 
 # Loading light curve
-lc_name = 'SAXJ1753.5-2349'
+lc_name = 'XTEJ1728-295'
 lc_telescope = 'RXTE'
-lc_std = 4.70637
-lc_avg = -0.25799
+lc_std = 5.10
+lc_avg = 4.78
 lc1 = Lightcurve(lc_name, lc_telescope)
-# plots.lc_modes(lc1)
+lc_telescope = 'Swift'
+lc_std = 0.00
+lc_avg = 0.00
+lc2 = Lightcurve(lc_name, lc_telescope)
+# lc1 = lc1.get_fraction(54644, 54657)
+plots.lc_modes(lc1, styling=True)
+# plots.lcs_modes([lc1, lc2], styling=True)
 
 # Get background
 # lc1.calc_background('55555', '56440', save=False)
 
 # Get outburst region
-ob1_peaktime = '51392'
-ob1 = lc1.get_outburst(ob1_peaktime, std=lc_std)
+# ob1_peaktime = '53897'
+# ob1 = lc1.get_outburst(ob1_peaktime, std=lc_std)
 
-# Remove background
-ob1.correct_background(lc_avg)
-lc1.correct_background(lc_avg)
+# # Remove background
+# ob1.correct_background(lc_avg)
+# lc1.correct_background(lc_avg)
 
-# Fits
-gaussian_fit, fit_stddev, fit_mean, fit_dur = ob1.fit_gaussian(ob1_peaktime)
-plots.lc_gaussian(lc1, ob1, fit_dur, gaussian_fit, fit_stddev)
+# # Gaussian fit
+# save = False
+# gaussian_fit, fit_stddev, fit_mean, fit_dur, fit_y = ob1.fit_gaussian()
+# plots.lc_gaussian(lc1, ob1, fit_dur, gaussian_fit, fit_stddev, fit_y, save=save, styling=True)
 
-exponential_fit, fit_tdecay, ob1_decay = ob1.fit_decay()
-plots.lc_exponential(lc1, ob1, ob1_decay, exponential_fit, fit_tdecay)
+# Exponential fit
+# exponential_fit, fit_tdecay, ob1_decay, fit_y = ob1.fit_decay()
+# plots.lc_exponential(lc1, ob1, ob1_decay, exponential_fit, fit_tdecay, fit_y, save=save, ylog=False, styling=True)
+
+# Linear fit
+# linear_fit, fit_tdecay, ob1_decay, fit_y = ob1.fit_ld()
+# plots.lc_linear(lc1, ob1, ob1_decay, linear_fit, fit_tdecay, fit_y, save=save)
 
 # ob1 = lc1.get_fraction('53500', '55000')
 # print(f"Stddev = {np.std(ob1.ts['rate'])}")
