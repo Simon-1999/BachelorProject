@@ -1,16 +1,6 @@
 #Code
 This folder contains all code used in my bachelor project. The folder layout looks like:
 
-└───classes
-└───data
-└───notebook
-└───output
-└───plots
-│  analysis.py
-│  fit_all.py
-│  fit.py
-│  load_obs.py
-
 #### /classes
 Contains the lightcurve class used as a framework for working around with lightcurves from different telescopes and observing campains.
 
