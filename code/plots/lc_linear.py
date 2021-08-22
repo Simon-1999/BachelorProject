@@ -8,7 +8,7 @@ import numpy as np
 from .plotstyles import *
 
 def lc_linear(lc, ob, ob_decay, fit, fit_tdecay, fit_y, show=True, save=False, styling=False, ylog=False):
-    print('lc_exponential: Plotting...')
+    print('lc_linear: Plotting...')
 
     if styling:
         science_style()
@@ -16,26 +16,21 @@ def lc_linear(lc, ob, ob_decay, fit, fit_tdecay, fit_y, show=True, save=False, s
         default_style()
 
     # Setup figure
-    fig = plt.figure(figsize=(8, 6))
+    fig = plt.figure(figsize=(6, 4.5))
 
     # Avoid minus sign from font
     plt.rc('axes', unicode_minus=False)
 
     # ------- Upper figure -------
     ax1 = plt.subplot2grid((4,1), (0,0), rowspan = 3, fig=fig)
-    # ax1.set_ylabel(r'Count rate (c s$^{-1}$)')
     ax1.set_xticklabels([])
     ax1.minorticks_on()
-    # ax1.tick_params(axis='both', which='major', labelsize=12)
-    # ax1.tick_params(axis='both', which='major', length=5)
-    # ax1.tick_params(axis='both', which='minor', length=2.5)
-    # ax1.tick_params(axis='both', which='both', direction='in', right=True, top=True)
 
     # Peak of outburst
     ob_peak = ob_decay.ts.time.mjd[0]
 
     # Title
-    ax1.set_title(f'Outburst of {lc.name} - {lc.telescope}')
+    ax1.set_title(f'{lc.name}')
 
     # Axis label
     # ax1.set_xlabel('Time (MJD)')
@@ -56,7 +51,6 @@ def lc_linear(lc, ob, ob_decay, fit, fit_tdecay, fit_y, show=True, save=False, s
 
     # Linear fit and decay time
     ax1.plot(fit.ts['time'].mjd - ob_peak, fit.ts['rate'], '--', color='grey', lw=1, label=fit.name)
-    ax1.plot([], [], ' ', label='$t_{decay}$ = ' + f'{abs(fit_tdecay):.2f}')
 
     # Axis limit
     ax1.set_xlim(ob.ts.time.mjd[0] - 2 - ob_peak, ob.ts.time.mjd[-1] + 5 - ob_peak)
@@ -68,11 +62,11 @@ def lc_linear(lc, ob, ob_decay, fit, fit_tdecay, fit_y, show=True, save=False, s
 
     # ------- Lower figure -------
     ax2 = plt.subplot2grid((4, 1), (3, 0), fig=fig)
-    sig = np.ones(len(ob_decay.ts.time.mjd[10:-1]))
-    resid = ob_decay.ts['rate'][10:-1] - fit_y
+    sig = np.ones(len(ob_decay.ts.time.mjd))
+    resid = ob_decay.ts['rate'] - fit_y
 
     # Error on fit
-    ax2.errorbar(ob_decay.ts.time.mjd[10:-1] - ob_peak, resid/(ob_decay.ts['rate_err_pos'][10:-1]), sig, fmt='.k', elinewidth=0.5, capsize=1.5, ms=3)
+    ax2.errorbar(ob_decay.ts.time.mjd - ob_peak, resid/(ob_decay.ts['rate_err_pos']), sig, fmt='.k', elinewidth=0.5, capsize=1.5, ms=3)
     ax2.hlines(0, 0, fit.ts['time'].mjd[-1] - ob_peak, linewidth=1, linestyle='--', color='grey')
 
     # Axis labels
@@ -92,7 +86,7 @@ def lc_linear(lc, ob, ob_decay, fit, fit_tdecay, fit_y, show=True, save=False, s
     # ax2.tick_params(axis='both', which='both', direction='in', right=True, top=True)
 
     # Legend
-    ax1.legend(shadow=False, edgecolor='k', fancybox=False, borderaxespad=1)
+    ax1.legend(shadow=False, edgecolor='white', fancybox=False)
 
     # Adjust whitespace between subplots
     fig.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, hspace=0.0)

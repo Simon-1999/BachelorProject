@@ -8,7 +8,7 @@ import os
 from .plotstyles import *
 
 def lc_gaussian(lc, ob, fit_dur, fit, std, fit_y, show=True, save=False, styling=False):
-    # print('lc_gaussian: Plotting...')
+    print('lc_gaussian: Plotting...')
 
     if styling:
         science_style()

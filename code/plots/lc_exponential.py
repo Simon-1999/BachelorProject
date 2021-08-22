@@ -9,7 +9,7 @@ import os
 from .plotstyles import *
 
 def lc_exponential(lc, ob, ob_decay, fit, fit_tdecay, fit_y, show=True, save=False, styling=False, ylog=False):
-    # print('lc_exponential: Plotting...')
+    print('lc_exponential: Plotting...')
 
     if styling:
         science_style()

@@ -19,7 +19,7 @@ def lc_modes(lc, show=True, save=False, styling=False, color=False):
     else:
         default_style()
 
-    fig = plt.figure(figsize=(5, 3.75))
+    fig = plt.figure(figsize=(10, 2.5))
 
     # Title
     plt.title(f'{lc.name}')
@@ -122,7 +122,7 @@ def lc_modes(lc, show=True, save=False, styling=False, color=False):
     plt.minorticks_on()
     if save:
         filename = f'lc_{lc.name}_{lc.telescope}.png'
-        SAVE_FOLDER = f'output/report/{lc.name}'
+        SAVE_FOLDER = f'output/report/lightcurves'
 
         # If saving directory does not exists make one
         if not os.path.isdir(SAVE_FOLDER):

@@ -1,0 +1,54 @@
+{
+    "XTEJ1734-234": {
+        "path": "data/RXTE/XTEJ1734-234/XTEJ1734_lc.txt",
+        "read_type": "RXTE"
+    },
+    "IGRJ17375-3022": {
+        "path": "data/RXTE/IGRJ17375-3022/IGRJ17375_lc.txt",
+        "read_type": "RXTE"
+    },
+    "IGRJ17597-2201": {
+        "path": "data/RXTE/IGRJ17597-2201/IGRJ1759_lc.txt",
+        "read_type": "RXTE"
+    },
+    "SAXJ1753.5-2349": {
+        "path": "data/RXTE/SAXJ1753.5-2349/SAXJ1753_lc.txt",
+        "read_type": "RXTE"
+    },
+    "WGAJ1715.3-2635": {
+        "path": "data/RXTE/WGAJ1715.3-2635/WGAJ1715_lc.txt",
+        "read_type": "RXTE"
+    },
+    "XTEJ1118+480": {
+        "path": "data/RXTE/XTEJ1118+480_ASM/xtej1118_ASM.txt",
+        "read_type": "RXTE_asm"
+    },
+    "XTEJ1637-498": {
+        "path": "data/RXTE/XTEJ1637-498/XTEJ1637_lc.txt",
+        "read_type": "RXTE"
+    },
+    "XTEJ1719-291": {
+        "path": "data/RXTE/XTEJ1719-291/XTEJ1719-291_lc.txt",
+        "read_type": "RXTE"
+    },
+    "XTEJ1719-356": {
+        "path": "data/RXTE/XTEJ1719-356/XTEJ1719-365_lc.txt",
+        "read_type": "RXTE"
+    },
+    "XTEJ1728-295": {
+        "path": "data/RXTE/XTEJ1728-295/XTEJ1728_lc.txt",
+        "read_type": "RXTE"
+    },
+    "XTEJ1737-376": {
+        "path": "data/RXTE/XTEJ1737-376/XTEJ1737_lc.txt",
+        "read_type": "RXTE"
+    },
+    "XTEJ1744-230": {
+        "path": "data/RXTE/XTEJ1744-230/XTEJ1744_lc.txt",
+        "read_type": "RXTE"
+    },
+    "XTEJ1817-155": {
+        "path": "data/RXTE/XTEJ1817-155/XTEJ1817_lc.txt",
+        "read_type": "RXTE"   
+    } 
+}
